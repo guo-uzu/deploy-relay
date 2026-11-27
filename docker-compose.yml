@@ -1,1 +1,37 @@
 services:
+  frontend:
+    build: ./relay-frontend
+    ports:
+      - "5173:80"
+    volumes:
+      - "./relay-frontend/caddy_data:/data"
+      - "./relay-frontend/caddy_config:/config"
+      - "./relay-frontend/conf:/etc/caddy"
+    restart: unless-stopped
+
+  backend:
+    build: ./relay-backend/
+
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      TZ: America/Mexico_City
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - /web_packages/docker/postgres/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
